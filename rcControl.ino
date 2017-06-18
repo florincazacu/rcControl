@@ -52,47 +52,45 @@ void setServoMotorOutput(int voltage) {
   analogWrite(servoPwr, voltage);
 }
 
-void goForward() {
-  Serial.println("Forward");
+void goForward() {  
   analogWrite(motorA1, currentSpeed);
   analogWrite(motorA2, 0);
   String forwardSpeed = "Forward speed: " + currentSpeed;
   Serial.println (forwardSpeed);
 }
 
-void goBack() {
-  Serial.println("Back");
+void goBack() {  
   analogWrite(motorA1, 0);
   analogWrite(motorA2, currentSpeed);
   String backSpeed = "Back speed: " + currentSpeed;
   Serial.println (backSpeed); 
 }
 
-void turnRight() {
-  Serial.println("Right: ");
+void turnRight() {  
   setServoMotorOutput(255);
   servoPosition += turnIncrement;
   if (servoPosition >= maxRightAngle) {
     servoPosition = maxRightAngle;
     setServoMotorOutput(0);
-  }
-  Serial.print("Servo position: ");
-  Serial.println(servoPosition);
+  }  
   myServo.write(servoPosition);
-  delay(delayTime);
+  Serial.println("Right: ");
+  String currentServoPosition = "Servo position " + servoPosition;  
+  Serial.println(currentServoPosition);
+  delay(delayTime);  
 }
 
-void turnLeft() {
-  Serial.println("Left");
+void turnLeft() {  
   setServoMotorOutput(255);
   servoPosition -= turnIncrement;
   if (servoPosition <= maxLeftAngle) {
     servoPosition = maxLeftAngle;
     setServoMotorOutput(0);
-  }
-  Serial.print("Servo position: ");
-  Serial.println(servoPosition);
+  }  
   myServo.write(servoPosition);
+  Serial.println("Left");
+  String currentServoPosition = "Servo position " + servoPosition;  
+  Serial.println(currentServoPosition);
   delay(delayTime);
 }
 
@@ -106,7 +104,7 @@ void loop() {
 //Read from bluetooth and write to usb serial
   if (mySerial.available()) {
     stream = mySerial.read();
-    Serial.print("stream received: ");
+    Serial.print("Stream received: ");
     Serial.println(stream);
   }
 
