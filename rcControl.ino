@@ -56,18 +56,16 @@ void goForward() {
   Serial.println("Forward");
   analogWrite(motorA1, currentSpeed);
   analogWrite(motorA2, 0);
-  Serial.print("Forward currentSpeed: "); Serial.println (currentSpeed);
-  Serial.print("motorA1: "); Serial.print(analogRead(motorA1));
-  Serial.print(" motorA2: "); Serial.println(analogRead(motorA2));
+  String forwardSpeed = "Forward speed: " + currentSpeed;
+  Serial.println (forwardSpeed);
 }
 
 void goBack() {
   Serial.println("Back");
   analogWrite(motorA1, 0);
   analogWrite(motorA2, currentSpeed);
-  Serial.print("Back currentSpeed: "); Serial.println (currentSpeed);
-  Serial.print("motorA1: "); Serial.print(analogRead(motorA1));
-  Serial.print(" motorA2: "); Serial.println(analogRead(motorA2));
+  String backSpeed = "Back speed: " + currentSpeed;
+  Serial.println (backSpeed); 
 }
 
 void turnRight() {
