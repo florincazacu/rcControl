@@ -28,8 +28,8 @@ int maxSpeed = 255; // Maximum engine speed
 int currentSpeed = maxSpeed; // Current engine speed
 int delayTime = 100;
 int turnIncrement = 5;
-int maxLeftAngle = 10;
-int maxRightAngle = 170;
+int maxLeftAngle = 110;
+int maxRightAngle = 50;
 
 SoftwareSerial mySerial(bluetoothTx, bluetoothRx);
 
@@ -39,103 +39,111 @@ void setup() {
   pinMode(servoGnd, OUTPUT);
   pinMode(servoPwr, OUTPUT);
   analogWrite (servoGnd, 0);
+  analogWrite(servoPwr, 255);
   myServo.attach(11); // Attach servo signal wire to pin 11
   myServo.write(servoPosition);
+  Serial.print("Servo position: ");
+  Serial.println(servoPosition);
   //Setup usb serial connection to computer
   Serial.begin(115200);
   //Setup Bluetooth serial connection to android
   mySerial.begin(115200);
 }
 
-// Power servo
-void setServoMotorOutput(int voltage) {
-  analogWrite(servoPwr, voltage);
-}
-
-void goForward() {  
+void goForward() {
+//  Serial.println("Forward");
   analogWrite(motorA1, currentSpeed);
   analogWrite(motorA2, 0);
-  String forwardSpeed = "Forward speed: " + currentSpeed;
-  Serial.println (forwardSpeed);
+//  Serial.print("Forward currentSpeed: ");
+  Serial.println (currentSpeed);
+//  Serial.print("motorA1: ");
+//  Serial.print(analogRead(motorA1));
+//  Serial.print(" motorA2: ");
+//  Serial.println(analogRead(motorA2));
 }
 
-void goBack() {  
+void goBack() {
+//  Serial.println("Back");
   analogWrite(motorA1, 0);
   analogWrite(motorA2, currentSpeed);
-  String backSpeed = "Back speed: " + currentSpeed;
-  Serial.println (backSpeed); 
+//  Serial.print("Back currentSpeed: ");
+  Serial.println (currentSpeed);
+//  Serial.print("motorA1: ");
+//  Serial.print(analogRead(motorA1));
+//  Serial.print(" motorA2: ");
+//  Serial.println(analogRead(motorA2));
 }
 
-void turnRight() {  
-  setServoMotorOutput(255);
-  servoPosition += turnIncrement;
-  if (servoPosition >= maxRightAngle) {
-    servoPosition = maxRightAngle;
-    setServoMotorOutput(0);
-  }  
-  myServo.write(servoPosition);
-  Serial.println("Right: ");
-  String currentServoPosition = "Servo position " + servoPosition;  
-  Serial.println(currentServoPosition);
-  delay(delayTime);  
-}
-
-void turnLeft() {  
-  setServoMotorOutput(255);
-  servoPosition -= turnIncrement;
-  if (servoPosition <= maxLeftAngle) {
+void turnLeft() {
+//  Serial.println("Left");  
+  if (servoPosition < maxLeftAngle) {
+    servoPosition += turnIncrement;
+    Serial.print("Servo position: ");
+    Serial.println(servoPosition);
+    myServo.write(servoPosition);
+    return;
+  } else {
     servoPosition = maxLeftAngle;
-    setServoMotorOutput(0);
-  }  
-  myServo.write(servoPosition);
-  Serial.println("Left");
-  String currentServoPosition = "Servo position " + servoPosition;  
-  Serial.println(currentServoPosition);
-  delay(delayTime);
+    return;
+  }
+}
+
+void turnRight() {
+//  Serial.println("Right");
+    if (servoPosition > maxRightAngle) {
+    servoPosition -= turnIncrement;
+    Serial.print("Servo position: ");
+    Serial.println(servoPosition);
+    myServo.write(servoPosition);
+    return;
+  } else {
+    servoPosition = maxRightAngle;
+    return;
+  }
 }
 
 void stopCar() {
   analogWrite(motorA1, 0);  analogWrite(motorA2, 0);
-  delay(delayTime);
 }
 
 void loop() {
 
-//Read from bluetooth and write to usb serial
+  //Read from bluetooth and write to usb serial
   if (mySerial.available()) {
     stream = mySerial.read();
-    Serial.print("Stream received: ");
+    if (stream != 83){
+    Serial.print("stream received: ");
     Serial.println(stream);
+    }
   }
 
-// Manipulate received data
+  // Manipulate received data
   switch (stream) {
       Serial.print("stream: ");
       Serial.println(stream);
     case 'q':
     case STOP:
-      setServoMotorOutput(0);
       stopCar();
       break;
     case '0':
     case '1':
     case '2':
     case '3':
-      currentSpeed = maxSpeed * 0.3;
+//      currentSpeed = maxSpeed * 0.3;
       break;
     case '4':
     case '5':
     case '6':
-      currentSpeed = maxSpeed * 0.5;
+//      currentSpeed = maxSpeed * 0.5;
       break;
     case '7':
     case '8':
     case '9':
-      currentSpeed = maxSpeed;
+//      currentSpeed = maxSpeed;
       break;
     case FORWARD:
       goForward();
-      break;
+      break;    
     case BACK:
       goBack();
       break;
