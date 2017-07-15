@@ -28,8 +28,9 @@ int maxSpeed = 255; // Maximum engine speed
 int currentSpeed = maxSpeed; // Current engine speed
 int delayTime = 100;
 int turnIncrement = 5;
-int maxLeftAngle = 110;
+int maxLeftAngle = 140;
 int maxRightAngle = 50;
+
 
 SoftwareSerial mySerial(bluetoothTx, bluetoothRx);
 
@@ -74,32 +75,40 @@ void goBack() {
 //  Serial.println(analogRead(motorA2));
 }
 
+unsigned long buttonPressTime;
+unsigned long currentTime;
+long interval = 200;
+
 void turnLeft() {
-//  Serial.println("Left");  
+//  Serial.println("Left");
+  if (currentTime - buttonPressTime < interval){
+  return;
+  }
   if (servoPosition < maxLeftAngle) {
     servoPosition += turnIncrement;
     Serial.print("Servo position: ");
     Serial.println(servoPosition);
     myServo.write(servoPosition);
-    return;
   } else {
     servoPosition = maxLeftAngle;
-    return;
   }
+  buttonPressTime = millis();
 }
 
 void turnRight() {
 //  Serial.println("Right");
+  if (currentTime - buttonPressTime < interval){
+  return;
+  }
     if (servoPosition > maxRightAngle) {
     servoPosition -= turnIncrement;
     Serial.print("Servo position: ");
     Serial.println(servoPosition);
     myServo.write(servoPosition);
-    return;
   } else {
     servoPosition = maxRightAngle;
-    return;
   }
+  buttonPressTime = millis();  
 }
 
 void stopCar() {
@@ -116,6 +125,8 @@ void loop() {
     Serial.println(stream);
     }
   }
+
+  currentTime = millis();
 
   // Manipulate received data
   switch (stream) {
@@ -169,6 +180,9 @@ void loop() {
       goBack();
       turnRight();
       break;
+    case 88:
+    case 120:
+    myServo.write(90);
   }
 }
 
