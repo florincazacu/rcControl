@@ -76,12 +76,11 @@ void goBack() {
 }
 
 unsigned long buttonPressTime;
-unsigned long currentTime;
 long interval = 200;
 
 void turnLeft() {
 //  Serial.println("Left");
-  if (currentTime - buttonPressTime < interval){
+  if (millis() - buttonPressTime < interval){
   return;
   }
   if (servoPosition < maxLeftAngle) {
@@ -97,7 +96,7 @@ void turnLeft() {
 
 void turnRight() {
 //  Serial.println("Right");
-  if (currentTime - buttonPressTime < interval){
+  if (millis() - buttonPressTime < interval){
   return;
   }
     if (servoPosition > maxRightAngle) {
@@ -125,8 +124,6 @@ void loop() {
     Serial.println(stream);
     }
   }
-
-  currentTime = millis();
 
   // Manipulate received data
   switch (stream) {
