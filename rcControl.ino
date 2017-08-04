@@ -4,7 +4,8 @@
 
 #include <Servo.h> // servo library 
 
-Servo myServo; // servo name
+Servo frontServo; // front servo
+Servo rearServo; // rear servo
 
 #define FORWARD 70
 #define BACK 66
@@ -19,26 +20,23 @@ Servo myServo; // servo name
 int bluetoothTx = 4; // bluetooth tx to 4 pin
 int bluetoothRx = 2; // bluetooth rx to 2 pin
 
-// Motor1 output takes pins 6 and 9 instead of 3 and 5
 int motorA1  = 6;  // Pin  6 of L298
 int motorA2  = 9;  // Pin  9 of L298
-//int servoPwr = 3;  // Pin  3 of L298
-//int servoGnd = 5;  // Pin  5 of L298
 
-int stream; // Received data from bluetooth
-int servoPosition = 90; // Default servomotor position for straight car movement
+int receivedStream; // Received data from bluetooth
+int frontServoPosition = 90; // Default servomotor position for straight car movement
+int rearServoPosition = 90; // Default servomotor position for straight car movement
 int maxSpeed = 255; // Maximum engine speed
 int currentSpeed = maxSpeed; // Current engine speed
-int delayTime = 100;
-int turnIncrement = 5;
-int maxLeftAngle = 130;
-int maxRightAngle = 50;
+int frontTurnIncrement = 5;
+int rearTurnIncrement = 5;
+int maxFrontLeftAngle = 130;
+int maxFrontRightAngle = 50;
 
-SoftwareSerial mySerial(bluetoothTx, bluetoothRx);
+int maxRearLeftAngle = 110;
+int maxRearRightAngle = 70;
 
-unsigned long buttonPressTime;
-long interval = 50;
-
+int turnDelay = 50;
 boolean turn = true;
 
 void canTurn() {
@@ -47,107 +45,90 @@ void canTurn() {
   }
 }
 
-TimedAction timedAction = TimedAction(interval, canTurn);
+SoftwareSerial mySerial(bluetoothTx, bluetoothRx);
+TimedAction timedAction = TimedAction(turnDelay, canTurn);
 
 void setup() {
   pinMode(motorA1, OUTPUT);
   pinMode(motorA2, OUTPUT);
-  //  pinMode(servoGnd, OUTPUT);
-  //  pinMode(servoPwr, OUTPUT);
-  //  analogWrite (servoGnd, 0);
-  //  analogWrite(servoPwr, 255);
-  myServo.attach(11); // Attach servo signal wire to pin 11
-  myServo.write(servoPosition);
-  Serial.print("Servo position: ");
-  Serial.println(servoPosition);
+  frontServo.attach(11); // Attach servo signal wire to pin 11
+  rearServo.attach(10); // Attach servo signal wire to pin 10
+  frontServo.write(frontServoPosition);
+  rearServo.write(rearServoPosition);
+
   //Setup usb serial connection to computer
   Serial.begin(115200);
+
   //Setup Bluetooth serial connection to android
   mySerial.begin(115200);
 }
 
 void goForward() {
-  //  Serial.println("Forward");
   analogWrite(motorA1, currentSpeed);
   analogWrite(motorA2, 0);
 }
 
 void goBack() {
-  //  Serial.println("Back");
   analogWrite(motorA1, 0);
   analogWrite(motorA2, currentSpeed);
 }
 
+void turnLeftRear() {
+  if (rearServoPosition > maxRearRightAngle && rearServoPosition <= maxRearLeftAngle) {
+    rearServoPosition -= rearTurnIncrement;
+    Serial.print("Rear Servo position: ");
+    Serial.println(rearServoPosition);
+    rearServo.write(rearServoPosition);
+  }
+}
+
 void turnLeft() {
-  if (servoPosition < maxLeftAngle && servoPosition >= maxRightAngle && turn == 1) {
-    servoPosition += turnIncrement;
-    Serial.print("Servo position: ");
-    Serial.println(servoPosition);
-    myServo.write(servoPosition);
+  if (frontServoPosition < maxFrontLeftAngle && frontServoPosition >= maxFrontRightAngle && turn == 1) {
+    frontServoPosition += frontTurnIncrement;
+    turnLeftRear();
+    frontServo.write(frontServoPosition);
   }
   turn = false;
 }
 
+void turnRightRear() {
+  if (rearServoPosition < maxRearLeftAngle && rearServoPosition >= maxRearRightAngle) {
+    rearServoPosition += rearTurnIncrement;
+    rearServo.write(rearServoPosition);
+  }
+}
+
 void turnRight() {
-  if (servoPosition > maxRightAngle && servoPosition <= maxLeftAngle && turn == 1) {
-    servoPosition -= turnIncrement;
-    Serial.print("Servo position: ");
-    Serial.println(servoPosition);
-    myServo.write(servoPosition);
+  if (frontServoPosition > maxFrontRightAngle && frontServoPosition <= maxFrontLeftAngle && turn == 1) {
+    frontServoPosition -= frontTurnIncrement;
+    turnRightRear();
+    frontServo.write(frontServoPosition);
   }
   turn = false;
 }
 
 void goForwardLeft() {
-  //  Serial.println("Left");
   analogWrite(motorA1, currentSpeed);
   analogWrite(motorA2, 0);
-  if (servoPosition < maxLeftAngle && servoPosition >= maxRightAngle && turn == 1) {
-    servoPosition += turnIncrement;
-    Serial.print("Servo position: ");
-    Serial.println(servoPosition);
-    myServo.write(servoPosition);
-  }
-  turn = false;
+  turnLeft();
 }
 
 void goForwardRight() {
-  //  Serial.println("Left");
   analogWrite(motorA1, currentSpeed);
   analogWrite(motorA2, 0);
-  if (servoPosition > maxRightAngle && servoPosition <= maxLeftAngle && turn == 1) {
-    servoPosition -= turnIncrement;
-    Serial.print("Servo position: ");
-    Serial.println(servoPosition);
-    myServo.write(servoPosition);
-  }
-  turn = false;
+  turnRight();
 }
 
 void goBackLeft() {
-  //  Serial.println("Left");
   analogWrite(motorA1, 0);
   analogWrite(motorA2, currentSpeed);
-  if (servoPosition < maxLeftAngle && servoPosition >= maxRightAngle && turn == 1) {
-    servoPosition += turnIncrement;
-    Serial.print("Servo position: ");
-    Serial.println(servoPosition);
-    myServo.write(servoPosition);
-  }
-  turn = false;
+  turnLeft();
 }
 
 void goBackRight() {
-  //  Serial.println("Left");
   analogWrite(motorA1, 0);
   analogWrite(motorA2, currentSpeed);
-  if (servoPosition > maxRightAngle && servoPosition <= maxLeftAngle && turn == 1) {
-    servoPosition -= turnIncrement;
-    Serial.print("Servo position: ");
-    Serial.println(servoPosition);
-    myServo.write(servoPosition);
-  }
-  turn = false;
+  turnRight();
 }
 
 void stopCar() {
@@ -160,17 +141,17 @@ void loop() {
 
   //Read from bluetooth and write to usb serial
   if (mySerial.available()) {
-    stream = mySerial.read();
-    if (stream != 83) {
-      Serial.print("stream received: ");
-      Serial.println(stream);
+    receivedStream = mySerial.read();
+    if (receivedStream != 83) {
+      Serial.print("receivedStream received: ");
+      Serial.println(receivedStream);
     }
   }
 
   // Manipulate received data
-  switch (stream) {
-      Serial.print("stream: ");
-      Serial.println(stream);
+  switch (receivedStream) {
+      Serial.print("receivedStream: ");
+      Serial.println(receivedStream);
     case 'q':
     case STOP:
       stopCar();
@@ -179,17 +160,17 @@ void loop() {
     case '1':
     case '2':
     case '3':
-      //      currentSpeed = maxSpeed * 0.3;
+            currentSpeed = maxSpeed * 0.3;
       break;
     case '4':
     case '5':
     case '6':
-      //      currentSpeed = maxSpeed * 0.5;
+            currentSpeed = maxSpeed * 0.5;
       break;
     case '7':
     case '8':
     case '9':
-      //      currentSpeed = maxSpeed;
+            currentSpeed = maxSpeed;
       break;
     case FORWARD:
       goForward();
@@ -204,11 +185,9 @@ void loop() {
       turnRight();
       break;
     case FORWARD_LEFT:
-      Serial.println("FWD_LEFT");
       goForwardLeft();
       break;
     case FORWARD_RIGHT:
-      Serial.println("FWD_RIGHT");
       goForwardRight();
       break;
     case BACK_LEFT:
@@ -219,8 +198,10 @@ void loop() {
       break;
     case 88:
     case 120:
-      servoPosition = 90
-      myServo.write(servoPosition);
+      frontServoPosition = 90;
+      rearServoPosition = 90;
+      frontServo.write(frontServoPosition);
+      rearServo.write(rearServoPosition);
   }
 }
 
